@@ -2,3 +2,4 @@
 /LedMatrix/out/
 .idea/
 *.iml
+/firmware/*.bin
