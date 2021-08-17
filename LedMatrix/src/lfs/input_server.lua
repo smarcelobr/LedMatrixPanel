@@ -36,7 +36,7 @@ do
   wifi.setmode(wifi.STATION, true)
   local station_cfg={}
   station_cfg.ssid="jardimdomeier"
-  station_cfg.pwd="sergioeluciene"
+  station_cfg.pwd="***"
   station_cfg.save=true
   wifi.sta.config(station_cfg)
 
