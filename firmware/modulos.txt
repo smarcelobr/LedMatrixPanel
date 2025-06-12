@@ -1,2 +1,3 @@
-This was built against the release branch and includes the following modules: bit, color_utils, file, gpio, net, node, pcm, rtctime, sjson, sntp, tmr, uart, websocket, wifi, ws2812, ws2812_effects.
+This was built against the release branch and includes the following modules: bit*, color_utils*, file, gpio,
+   net, node, pcm*, pixbuf*, rtctime*, sjson*, sntp*, tmr, uart, websocket*, wifi, ws2812*, ws2812_effects*.
 The files are guaranteed to be available for download for 24h.
