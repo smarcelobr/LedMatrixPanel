@@ -2,16 +2,23 @@
 --- Baseado no código em https://codeincomplete.com/articles/javascript-tetris/
 ---
 ---
-ws2812.init(ws2812.MODE_SINGLE)
--- create a buffer, 60 LEDs with 3 color bytes
+local ledPanel = require("led_panel")
+
 tetris = {}
 
 do
     --- CONSTANTES
-    local KEY = { ESC = 27, SPACE = 32, LEFT = 37, UP = 38, RIGHT = 39, DOWN = 40,
-         PLUS= string.byte('+'),
-         MINUS= string.byte('-')
+    local KEY = {
+        ESC = 27,
+        SPACE = 32,
+        LEFT = 37,
+        UP = 38,
+        RIGHT = 39,
+        DOWN = 40,
+        PLUS = string.byte('+'),
+        MINUS = string.byte('-')
     }
+
     local DIR = { UP = 1, RIGHT = 2, DOWN = 3, LEFT = 4, MIN = 1, MAX = 4 }
     local speed = { start = 600, decrement = 5, min = 100 } -- milliseconds until current piece drops 1 row
     local nx = 10 -- width of tetris court (in blocks)
@@ -27,13 +34,13 @@ do
     local red = { 255, 0, 0 }
 
     -- peças e suas rotações
-    local i = {name='i', blocks = { 0x0F00, 0x2222, 0x00F0, 0x4444 }, color = cyan };
-    local j = {name='j', blocks = { 0x44C0, 0x8E00, 0x6440, 0x0E20 }, color = blue };
-    local l = {name='l', blocks = { 0x4460, 0x0E80, 0xC440, 0x2E00 }, color = orange };
-    local o = {name='o', blocks = { 0xCC00, 0xCC00, 0xCC00, 0xCC00 }, color = yellow };
-    local s = {name='s', blocks = { 0x06C0, 0x8C40, 0x6C00, 0x4620 }, color = green };
-    local t = {name='t', blocks = { 0x0E40, 0x4C40, 0x4E00, 0x4640 }, color = purple };
-    local z = {name='z', blocks = { 0x0C60, 0x4C80, 0xC600, 0x2640 }, color = red };
+    local i = { name = 'i', blocks = { 0x0F00, 0x2222, 0x00F0, 0x4444 }, color = cyan };
+    local j = { name = 'j', blocks = { 0x44C0, 0x8E00, 0x6440, 0x0E20 }, color = blue };
+    local l = { name = 'l', blocks = { 0x4460, 0x0E80, 0xC440, 0x2E00 }, color = orange };
+    local o = { name = 'o', blocks = { 0xCC00, 0xCC00, 0xCC00, 0xCC00 }, color = yellow };
+    local s = { name = 's', blocks = { 0x06C0, 0x8C40, 0x6C00, 0x4620 }, color = green };
+    local t = { name = 't', blocks = { 0x0E40, 0x4C40, 0x4E00, 0x4640 }, color = purple };
+    local z = { name = 'z', blocks = { 0x0C60, 0x4C80, 0xC600, 0x2640 }, color = red };
 
     --- VARIAVEIS
     local next -- the next piece
@@ -45,22 +52,48 @@ do
     local score = 0 -- the current score
     local actions = (require "fifo").new() -- queue of user actions (inputs)
     local blocks = {} -- 2 dimensional array (nx*ny) representing tetris court - either empty block or occupied by a 'piece'
-    local brilho = {current= 10, max=10, min=1}
+    local brilho = { current = 10, max = 10, min = 1 }
 
     local invalidate = false -- indica se o desenho da tela precisa ser feito
 
+    -- Mapa de teclas e ações
+    local switch = {
+        [KEY.LEFT] = function()
+            move(DIR.LEFT)
+        end,
+        [KEY.RIGHT] = function()
+            move(DIR.RIGHT)
+        end,
+        [KEY.UP] = function()
+            rotate()
+        end,
+        [KEY.DOWN] = function()
+            drop()
+        end,
+        [KEY.ESC] = function()
+            lose()
+        end,
+        [KEY.SPACE] = function()
+            tetris.start()
+        end,
+        [KEY.MINUS] = function()
+            brilho.current = math.max(brilho.min, brilho.current - 1)
+        end,
+        [KEY.PLUS] = function()
+            brilho.current = math.min(brilho.max, brilho.current + 1)
+        end,
+    }
+
     function initStage()
         -- inicia a matrix que representa o que está em cada bloco da área do jogo
-        for i=1,nx do
+        for i = 1, nx do
             blocks[i] = {}     -- create a new row
-            for j=1,ny do
+            for j = 1, ny do
                 blocks[i][j] = nil -- indica que não tem bloco nessa posicao
             end
         end
         invalidate = true -- precisa atualizar a tela.
     end
-
-    local strip_buffer = ws2812.newBuffer(200, 3)
 
     --[[
     We can then provide a helper method that given:
@@ -91,44 +124,29 @@ do
 
     end
 
-    function calcStripIndex(x, y)
-        local index
-        if (x % 2)==0 then
-            index = ((x-1)*20)-(y-21)
-        else
-            index = ((x-1)*20)+y
-        end
-        return index
-    end
-
-    function drawBlock(x, y, color)
-        strip_buffer:set(calcStripIndex(x,y), color);
-    end
-
     function drawPiece(type, x, y, dir)
         eachblock(type, x, y, dir, function(x, y)
-            drawBlock(x, y, type.color)
+            ledPanel.setPixel(x, y, type.color)
         end)
     end
 
     function draw()
-        -- apaga tudo:
-        strip_buffer:fill(0, 0, 0)
+        ledPanel.apagaBuffer();
         if (playing and current) then
             drawPiece(current.type, current.x, current.y, current.dir)
         end
         local x, y, block
-        for y = 1,ny do
-            for x = 1,nx do
+        for y = 1, ny do
+            for x = 1, nx do
                 block = getBlock(x, y)
                 if block then
-                    drawBlock(x, y, block.color)
+                    ledPanel.setPixel(x, y, block.color)
                 end
             end
         end
 
-        strip_buffer:fade((brilho.max+1) - brilho.current)
-        ws2812.write(strip_buffer)
+        ledPanel.setBrilho((brilho.max + 1) - brilho.current)
+        ledPanel.draw()
     end
 
     function setScore(n)
@@ -218,44 +236,44 @@ do
     end
 
     function removeLines()
-       local complete, n = true, 0
-       local y = ny
-       while y >= 1 do
-          complete = true
-          for x = 1,nx do
-            if not getBlock(x, y) then
-               complete = false
-               break
+        local complete, n = true, 0
+        local y = ny
+        while y >= 1 do
+            complete = true
+            for x = 1, nx do
+                if not getBlock(x, y) then
+                    complete = false
+                    break
+                end
+            end -- for da coluna
+            if complete then
+                removeLine(y)
+                y = y + 1 -- recheck same line
+                n = n + 1
             end
-          end -- for da coluna
-          if complete then
-             removeLine(y)
-             y = y + 1 -- recheck same line
-             n = n + 1
-          end
-          y = y - 1
-       end -- while da linha
-       if n > 0 then
-         addRows(n)
-         addScore( 100 * 2^(n-1) ) -- 1: 100, 2: 200, 3: 400, 4: 800
-       end
+            y = y - 1
+        end -- while da linha
+        if n > 0 then
+            addRows(n)
+            addScore(100 * 2 ^ (n - 1)) -- 1: 100, 2: 200, 3: 400, 4: 800
+        end
     end
 
     function removeLine(n)
-       for y = n, 1, -1 do
-          for x = 1, nx do
-             if y == 1 then
-                setBlock(x, y, nil)
-             else
-                setBlock(x, y, getBlock(x, y-1) )
-             end
-          end
-       end
+        for y = n, 1, -1 do
+            for x = 1, nx do
+                if y == 1 then
+                    setBlock(x, y, nil)
+                else
+                    setBlock(x, y, getBlock(x, y - 1))
+                end
+            end
+        end
     end
 
     function move(dir)
         if not current then
-           return false
+            return false
         end
         local x, y = current.x, current.y
         local switch = {
@@ -329,33 +347,6 @@ do
 
     -- callback do fifo:dequeue
     function handle(action)
-        local switch = {
-            [KEY.LEFT] = function()
-                move(DIR.LEFT)
-            end,
-            [KEY.RIGHT] = function()
-                move(DIR.RIGHT)
-            end,
-            [KEY.UP] = function()
-                rotate()
-            end,
-            [KEY.DOWN] = function()
-                drop()
-            end,
-            [KEY.ESC] = function()
-                lose()
-            end,
-            [KEY.SPACE] = function()
-                tetris.start()
-            end,
-            [KEY.MINUS] = function ()
-                brilho.current = math.max(brilho.min, brilho.current - 1)
-            end,
-            [KEY.PLUS] = function ()
-                brilho.current = math.min(brilho.max, brilho.current + 1)
-            end,
-        }
-
         switch[action]()
 
         return nil, false
@@ -368,7 +359,9 @@ do
             dt = dt + idt
             if (dt > step) then
                 dt = dt - step
-                node.task.post(node.task.MEDIUM_PRIORITY, function() chamar(drop()) end )
+                node.task.post(node.task.MEDIUM_PRIORITY, function()
+                    chamar(drop())
+                end)
             end
         end
     end
@@ -379,103 +372,91 @@ do
 
     function frame(loopTimer)
         now = (tmr.now() / 1000)
-        chamar( update(now - last), function() loopTimer:stop() end)
+        chamar(update(now - last), function()
+            loopTimer:stop()
+        end)
 
         if invalidate then
-           invalidate = false
-           node.task.post(node.task.MEDIUM_PRIORITY,
-              function()
-                chamar(draw(), function() loopTimer:stop() end)
-              end )
+            invalidate = false
+            node.task.post(node.task.MEDIUM_PRIORITY,
+                    function()
+                        chamar(draw(), function()
+                            loopTimer:stop()
+                        end)
+                    end)
         end
         last = now
-    end
-
-    function tetris.printBuffer()
-        local linha, r, g, b
-        print('----------')
-        for y=1,ny do
-          linha = ""
-          for x=1,nx do
-             r,g,b = strip_buffer:get(calcStripIndex(x,y))
-             if r>0 or g>0 or b>0 then
-                linha = linha .. 'X'
-             else
-                linha = linha .. ' '
-             end
-          end
-          print (linha)
-        end
-        print('==========')
     end
 
     function tetris.printStage()
         local linha, block
         print('----------')
-        for y=1,ny do
-          linha = ""
-          for x=1,nx do
-              block = getBlock(x, y)
-              if block and (block.color[1]>0 or block.color[2]>0 or block.color[3]>0) then
-                   linha = linha .. 'X'
-              else
-                   linha = linha .. ' '
-              end
-          end
-          print (linha)
+        for y = 1, ny do
+            linha = ""
+            for x = 1, nx do
+                block = getBlock(x, y)
+                if block and (block.color[1] > 0 or block.color[2] > 0 or block.color[3] > 0) then
+                    linha = linha .. 'X'
+                else
+                    linha = linha .. ' '
+                end
+            end
+            print(linha)
         end
         print('==========')
     end
 
     function tetris.debug()
-       if playing then
-          print('playing')
-       else
-          print('not playing')
-       end
-       if (current) then
-          print('current',current.x, current.y, current.dir, current.type.name)
-       end
-       if next then
-          print('next',next.x, next.y, next.dir, next.type.name)
-       end
-       local rndPiece = randomPiece()
-       if rndPiece then
-          print('rnd',rndPiece.x, rndPiece.y, rndPiece.dir, rndPiece.type.name)
-       end
+        if playing then
+            print('playing')
+        else
+            print('not playing')
+        end
+        if (current) then
+            print('current', current.x, current.y, current.dir, current.type.name)
+        end
+        if next then
+            print('next', next.x, next.y, next.dir, next.type.name)
+        end
+        local rndPiece = randomPiece()
+        if rndPiece then
+            print('rnd', rndPiece.x, rndPiece.y, rndPiece.dir, rndPiece.type.name)
+        end
     end
 
     --[[
     @param action DIR.LEFT, DIR.RIGHT, DIR.UP, DIR.DOWN
     --]]
-    tetris.doAction = function (action)
-       actions:queue(action)
+    tetris.doAction = function(action)
+        actions:queue(action)
     end
 
+    -- executa a atualização do frame a cada 90 ms
     if not tmr.create():alarm(90, tmr.ALARM_AUTO, frame) then
         print("deu ruim!")
     end
 
+    -- expõe as KEYs para o tetris_server.
     tetris.KEY = KEY
 
-    require("input_server")
+    require("tetris_server")
 end
 
 tetris.start()
 
 -- shorthands
 function l()
-  tetris.doAction(tetris.KEY.LEFT)
+    tetris.doAction(tetris.KEY.LEFT)
 end
 
 function r()
-  tetris.doAction(tetris.KEY.RIGHT)
+    tetris.doAction(tetris.KEY.RIGHT)
 end
 
 function u()
-  tetris.doAction(tetris.KEY.UP)
+    tetris.doAction(tetris.KEY.UP)
 end
 
 function d()
-  tetris.doAction(tetris.KEY.DOWN)
+    tetris.doAction(tetris.KEY.DOWN)
 end

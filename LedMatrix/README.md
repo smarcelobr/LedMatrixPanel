@@ -28,6 +28,7 @@
 
 ### build do código .lua e LFS
 
+    cd /mnt/c/Users/smarc/CLionProjects/LedMatrixPanel/LedMatrix/    
     cd ./src/SPIFFS
     cp init.lua ../../out/
     cp reload_LFS.lua ../../out/
@@ -45,7 +46,8 @@
 
 ### executando o código novo:
 
-Execute o script 'run.ps1' no powershell, ou:
+Execute o script 'run.ps1' no powershell, 
+ou, no Ubuntu:
 
     nodemcu-tool --port=/dev/ttyUSB0 run reload_LFS.lua
     nodemcu-tool --port=/dev/ttyUSB0 terminal

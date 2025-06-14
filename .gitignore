@@ -3,3 +3,4 @@
 .idea/
 *.iml
 /firmware/*.bin
+/LedMatrix/src/SPIFFS/config.json
