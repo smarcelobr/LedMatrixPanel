@@ -35,7 +35,8 @@ do
 
     end
 
-    srv = net.createServer(net.TCP, 600)  -- TCP
+    -- TCP e timeout de 10 minutos (600 seg) para desconectar o cliente se inativo.
+    srv = net.createServer(net.TCP, 600)
     srv:listen(12010, tetris_session)
     --srv:listen(12011, ledMatrix_session)
 

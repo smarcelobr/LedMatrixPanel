@@ -23,6 +23,8 @@ do
     local speed = { start = 600, decrement = 5, min = 100 } -- milliseconds until current piece drops 1 row
     local nx = 10 -- width of tetris court (in blocks)
     local ny = 20 -- height of tetris court (in blocks)
+    local eachCONTINUE = 1
+    local eachBREAK = 2
 
     --- CORES
     local cyan = { 0, 255, 255 }
@@ -34,6 +36,25 @@ do
     local red = { 255, 0, 0 }
 
     -- peças e suas rotações
+    --[[ Cada ponto da peça/direção é definida com um número de 16 bits (4 colunas x 4 linhas)
+         peça I
+           UP     RIGHT   DOWN    LEFT
+          0000    0010    0000    0100
+          1111    0010    0000    0100
+          0000    0010    1111    0100
+          0000    0010    0000    0100
+         ======= ======= ======= =======
+         0x0f00  0x2222  0x00f0  0x4444
+
+         peça J
+           UP     RIGHT   DOWN    LEFT
+          0100    1000    0110    0000
+          0100    1110    0010    1110
+          1100    0000    0010    0010
+          0000    0000    0000    0000
+         ======= ======= ======= =======
+         0x44C0  0x8E00  0x6440  0x0E20
+    --]]
     local i = { name = 'i', blocks = { 0x0F00, 0x2222, 0x00F0, 0x4444 }, color = cyan };
     local j = { name = 'j', blocks = { 0x44C0, 0x8E00, 0x6440, 0x0E20 }, color = blue };
     local l = { name = 'l', blocks = { 0x4460, 0x0E80, 0xC440, 0x2E00 }, color = orange };
@@ -57,7 +78,7 @@ do
     local invalidate = false -- indica se o desenho da tela precisa ser feito
 
     -- Mapa de teclas e ações
-    local switch = {
+    local actionMap = {
         [KEY.LEFT] = function()
             move(DIR.LEFT)
         end,
@@ -111,7 +132,9 @@ do
         while b > 0 do
 
             if bit.band(blcks, b) > 0 then
-                fn(x + col, y + row)
+                if fn(x + col, y + row) == eachBREAK then
+                    break
+                end
             end
             col = col + 1
             if (col == 4) then
@@ -127,6 +150,7 @@ do
     function drawPiece(type, x, y, dir)
         eachblock(type, x, y, dir, function(x, y)
             ledPanel.setPixel(x, y, type.color)
+            return eachCONTINUE
         end)
     end
 
@@ -193,6 +217,10 @@ do
         --invalidateNext()
     end
 
+    function occupiedBlock(x, y)
+        return (x <= 0) or (x > nx) or (y <= 0) or (y > ny) or getBlock(x, y)
+    end
+
     --[[
     Valid Piece Positioning
     We need to be careful about our bounds checking when
@@ -206,8 +234,9 @@ do
     function occupied(type, x, y, dir)
         local result = false
         eachblock(type, x, y, dir, function(x, y)
-            if ((x <= 0) or (x > nx) or (y <= 0) or (y > ny) or getBlock(x, y)) then
-                result = true;
+            if occupiedBlock(x,y) then
+                result = true
+                return eachBREAK
             end
         end)
         return result;
@@ -224,13 +253,28 @@ do
         end
         local idx = math.random(#pieces)
         local type = table.remove(pieces, idx) -- remove a single piece
-        return { type = type, dir = DIR.UP, x = 3, y = 1 };
+        -- Para evitar que algumas peças apareçam apenas na segunda linha do tetris,
+        -- testo se a primeira linha da peça não é vazia para começar da linha 1 senão 0.
+        return { type = type, dir = DIR.UP, x = 3, y = (bit.band(0xf000,type.blocks[DIR.UP])>0) and 1 or 0 };
     end
 
     function dropPiece()
         if current then
             eachblock(current.type, current.x, current.y, current.dir, function(x, y)
                 setBlock(x, y, current.type)
+                return eachCONTINUE
+            end)
+        end
+    end
+
+    -- ocupa o que der da peça nas partes não ocupadas.
+    function dropPartOfPiece()
+        if current then
+            eachblock(current.type, current.x, current.y, current.dir, function(x, y)
+                if not occupiedBlock(x, y) then
+                   setBlock(x, y, current.type)
+                end
+                return eachCONTINUE
             end)
         end
     end
@@ -263,14 +307,17 @@ do
         for y = n, 1, -1 do
             for x = 1, nx do
                 if y == 1 then
+                    -- primeira linha fica vazia.
                     setBlock(x, y, nil)
                 else
+                    -- copia os blocos da linha anterior para a linha eliminada
                     setBlock(x, y, getBlock(x, y - 1))
                 end
             end
         end
     end
 
+    -- posiciona a peça corrente uma linha/coluna para a direção especificada.
     function move(dir)
         if not current then
             return false
@@ -300,29 +347,45 @@ do
     end
 
     function rotate(dir)
+        if not current then
+            return false
+        end
+
         local newdir = current.dir + 1
         if current.dir == DIR.MAX then
             newdir = DIR.MIN
         end
+
         if (unoccupied(current.type, current.x, current.y, newdir)) then
             current.dir = newdir
             invalidate = true
+            return true
+        else
+            return false
         end
     end
 
     function lose()
         print('perdeu!');
+        cuurent = nil
         playing = false
     end
 
+    -- desce a peça corrente uma posição e
+    -- se não conseguir descer,
+    -- ocupa o lugar definitivo da peça no tetris.
     function drop()
-        if (not move(DIR.DOWN)) then
-            addScore(10)
-            dropPiece()
-            removeLines()
-            setCurrentPiece(next)
-            setNextPiece(randomPiece())
+        if (not move(DIR.DOWN)) then -- a peça atual não desce mais?
+            addScore(10) -- ganha 10 pontos
+            dropPiece() -- ocupa a peça no seu lugar definitivo
+            removeLines() -- remove as linhas completas
+            setCurrentPiece(next) -- a próxima peça vira a corrente
+            setNextPiece(randomPiece()) -- sorteia uma próxima peça.
             if (occupied(current.type, current.x, current.y, current.dir)) then
+                -- Se não houver espaço para a nova peça corrente, perdeu!
+                -- ocupa parte dela no tetris para mostrar que não há espaço
+                dropPartOfPiece()
+                -- perdeu!
                 lose()
             end
         end
@@ -347,15 +410,25 @@ do
 
     -- callback do fifo:dequeue
     function handle(action)
-        switch[action]()
+        actionMap[action]()
 
         return nil, false
     end
 
+    --[[
+    @param action KEY.*
+    --]]
+    tetris.doAction = function(action)
+        actions:queue(action)
+    end
+
     -- chamado no GAME LOOP
+    -- idt são os milisegundos que passou desde a ultima chamada
+    -- dt acumula os milisegundos decorridos e o step é quando a
+    -- tela precisa ser atualizada em milisegundos.
     function update(idt)
+        actions:dequeue(handle)
         if (playing) then
-            actions:dequeue(handle)
             dt = dt + idt
             if (dt > step) then
                 dt = dt - step
@@ -371,6 +444,7 @@ do
     local last = (tmr.now() / 1000)
 
     function frame(loopTimer)
+        -- tmr.now() retorna um contador em microsegundos (reset após 31 bits).
         now = (tmr.now() / 1000)
         chamar(update(now - last), function()
             loopTimer:stop()
@@ -387,6 +461,15 @@ do
         end
         last = now
     end
+
+    -- executa a atualização do frame a cada 90 milisegundos
+    if not tmr.create():alarm(90, tmr.ALARM_AUTO, frame) then
+        print("deu ruim!")
+    end
+
+    -- expõe as KEYs para o tetris_server.
+    tetris.KEY = KEY
+    require("tetris_server")
 
     function tetris.printStage()
         local linha, block
@@ -423,23 +506,6 @@ do
             print('rnd', rndPiece.x, rndPiece.y, rndPiece.dir, rndPiece.type.name)
         end
     end
-
-    --[[
-    @param action DIR.LEFT, DIR.RIGHT, DIR.UP, DIR.DOWN
-    --]]
-    tetris.doAction = function(action)
-        actions:queue(action)
-    end
-
-    -- executa a atualização do frame a cada 90 ms
-    if not tmr.create():alarm(90, tmr.ALARM_AUTO, frame) then
-        print("deu ruim!")
-    end
-
-    -- expõe as KEYs para o tetris_server.
-    tetris.KEY = KEY
-
-    require("tetris_server")
 end
 
 tetris.start()
