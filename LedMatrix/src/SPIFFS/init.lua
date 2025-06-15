@@ -16,7 +16,7 @@ function load_config()
         local config = sjson.decode(content)
         return config
     else
-        print("Erro: Arquivo config.json não encontrado!")
+        print("Erro: Arquivo config.json nao encontrado!")
         return nil
     end
 end
@@ -34,7 +34,7 @@ if config then
     station_cfg.save = true
     wifi.sta.config(station_cfg)
 else
-    print("Falha ao carregar configurações WiFi")
+    print("Falha ao carregar configuracoes WiFi")
 end
 
 function startup()

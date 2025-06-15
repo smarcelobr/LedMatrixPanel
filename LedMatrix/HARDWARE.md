@@ -6,7 +6,7 @@ O painel consiste em 10 fitas de LEDs endereçáveis (**ws2812**) com 20 LEDs ca
 
 Cada uma das 10 fitas de LEDs formam uma coluna com 20 LEDs nas linhas.
 
-O pino ligado à fita de LED é o **D4** do ESP-12. 
+O pino ligado à fita de LED é o **D4** (GPIO2) do ESP-12. 
 
 ## Indexação dos LEDs
 

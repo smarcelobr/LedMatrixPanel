@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tetris Controller</title>
+    <!-- Bootstrap CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="tetris.css" rel="stylesheet"/>
+</head>
+<body>
+
+<!-- Peça T (vermelha) -->
+<template id="peca-t">
+    <svg width="100" height="100" viewBox="0 0 100 100">
+        <rect x="30" y="30" width="20" height="20" fill="#ff0000"/>
+        <rect x="50" y="30" width="20" height="20" fill="#ff0000"/>
+        <rect x="70" y="30" width="20" height="20" fill="#ff0000"/>
+        <rect x="50" y="50" width="20" height="20" fill="#ff0000"/>
+    </svg>
+</template>
+
+<!-- Peça I (ciano) -->
+<template id="peca-i">
+    <svg width="100" height="100" viewBox="0 0 100 100">
+        <rect x="20" y="40" width="20" height="20" fill="#00ffff"/>
+        <rect x="40" y="40" width="20" height="20" fill="#00ffff"/>
+        <rect x="60" y="40" width="20" height="20" fill="#00ffff"/>
+        <rect x="80" y="40" width="20" height="20" fill="#00ffff"/>
+    </svg>
+</template>
+
+<!-- Peça J (azul) -->
+<template id="peca-j">
+    <svg width="100" height="100" viewBox="0 0 100 100">
+        <rect x="30" y="30" width="20" height="20" fill="#0000ff"/>
+        <rect x="30" y="50" width="20" height="20" fill="#0000ff"/>
+        <rect x="50" y="50" width="20" height="20" fill="#0000ff"/>
+        <rect x="70" y="50" width="20" height="20" fill="#0000ff"/>
+    </svg>
+</template>
+
+<!-- Peça L (laranja) -->
+<template id="peca-l">
+    <svg width="100" height="100" viewBox="0 0 100 100">
+        <rect x="70" y="30" width="20" height="20" fill="#ff7f00"/>
+        <rect x="30" y="50" width="20" height="20" fill="#ff7f00"/>
+        <rect x="50" y="50" width="20" height="20" fill="#ff7f00"/>
+        <rect x="70" y="50" width="20" height="20" fill="#ff7f00"/>
+    </svg>
+</template>
+
+<!-- Peça S (verde) -->
+<template id="peca-s">
+    <svg width="100" height="100" viewBox="0 0 100 100">
+        <rect x="50" y="30" width="20" height="20" fill="#00ff00"/>
+        <rect x="70" y="30" width="20" height="20" fill="#00ff00"/>
+        <rect x="30" y="50" width="20" height="20" fill="#00ff00"/>
+        <rect x="50" y="50" width="20" height="20" fill="#00ff00"/>
+    </svg>
+</template>
+
+<!-- Peça Z (roxa) -->
+<template id="peca-z">
+    <svg width="100" height="100" viewBox="0 0 100 100">
+        <rect x="30" y="30" width="20" height="20" fill="#800080"/>
+        <rect x="50" y="30" width="20" height="20" fill="#800080"/>
+        <rect x="50" y="50" width="20" height="20" fill="#800080"/>
+        <rect x="70" y="50" width="20" height="20" fill="#800080"/>
+    </svg>
+</template>
+
+    <div class="container">
+        <!-- Seção Superior -->
+        <div class="row top-section">
+            <div class="col">
+                <h1>Tetris Controller</h1>
+                <div class="score">Score: 1000</div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-3 col-md-1">
+                <!-- Barra de ferramentas lateral -->
+                <div class="d-flex flex-column align-items-start mt-3">
+                    <button class="round-button">
+                        <svg width="24" height="24" viewBox="0 0 24 24">
+                            <path fill="white" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                        </svg>
+                    </button>
+                    <button class="round-button">
+                        <svg width="24" height="24" viewBox="0 0 24 24">
+                            <path fill="white" d="M19 13H5v-2h14v2z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <!-- Seção Esquerda - Próxima Peça -->
+            <div class="col-9 col-md-4 mb-3">
+                <div class="next-piece">
+                    <h3>Próxima Peça</h3>
+                    <div id="next-piece-img">&nbsp;</div>
+                </div>
+            </div>
+            
+            <!-- Seção Direita - Controles -->
+            <div class="col-md-7">
+                <div class="controls">
+                    <h3>Controles</h3>
+                    <div class="directional-pad">
+                        <div></div>
+                        <button class="round-button">
+                            <svg width="24" height="24" viewBox="0 0 24 24">
+                                <path fill="white" d="M7 14l5-5 5 5z"/>
+                            </svg>
+                        </button>
+                        <div></div>
+                        <button class="round-button">
+                            <svg width="24" height="24" viewBox="0 0 24 24">
+                                <path fill="white" d="M15 19l-5-5 5-5z"/>
+                            </svg>
+                        </button>
+                        <div></div>
+                        <button class="round-button">
+                            <svg width="24" height="24" viewBox="0 0 24 24">
+                                <path fill="white" d="M9 19l5-5-5-5z"/>
+                            </svg>
+                        </button>
+                        <div></div>
+                        <button class="round-button">
+                            <svg width="24" height="24" viewBox="0 0 24 24">
+                                <path fill="white" d="M7 10l5 5 5-5z"/>
+                            </svg>
+                        </button>
+                        <div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="tetris.js"></script>
+</body>
+</html>

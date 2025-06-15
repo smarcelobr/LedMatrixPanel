@@ -27,13 +27,20 @@ do
     local eachBREAK = 2
 
     --- CORES
-    local cyan = { 0, 255, 255 }
-    local blue = { 0, 0, 255 }
-    local orange = { 255, 131, 0 }
-    local yellow = { 255, 255, 0 }
-    local green = { 0, 80, 0 }
-    local purple = { 128, 0, 128 }
-    local red = { 255, 0, 0 }
+    local cyan = { 0, 128, 128 }
+    local blue = { 0, 0, 128 }
+    local orange = { 128, 66, 0 }
+    local yellow = { 128, 128, 0 }
+    local green = { 0, 40, 0 }
+    local purple = { 64, 0, 64 }
+    local red = { 128, 0, 0 }
+--     local cyan = { 0, 255, 255 }
+--     local blue = { 0, 0, 255 }
+--     local orange = { 255, 131, 0 }
+--     local yellow = { 255, 255, 0 }
+--     local green = { 0, 80, 0 }
+--     local purple = { 128, 0, 128 }
+--     local red = { 255, 0, 0 }
 
     -- peças e suas rotações
     --[[ Cada ponto da peça/direção é definida com um número de 16 bits (4 colunas x 4 linhas)
@@ -468,8 +475,9 @@ do
     end
 
     -- expõe as KEYs para o tetris_server.
-    tetris.KEY = KEY
-    require("tetris_server")
+--    tetris.KEY = KEY
+--    require("tetris_server")
+    require("tetris_httpserver")
 
     function tetris.printStage()
         local linha, block
