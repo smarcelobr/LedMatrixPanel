@@ -366,9 +366,8 @@ do
     end
 
     function lose()
-        print('perdeu!');
-        cuurent = nil
-        playing = false
+        print('perdeu!')
+        tetris.stop()
     end
 
     -- desce a peça corrente uma posição e
@@ -405,6 +404,7 @@ do
     end
 
     function tetris.stop()
+        current = nil
         playing = false
     end
 
