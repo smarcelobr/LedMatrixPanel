@@ -5,6 +5,9 @@
 -- modulos do ESP-12:
 --        modules: color_utils,file,gpio,net,node,pcm,tmr,uart,websocket,wifi,ws2812,ws2812_effects
 
+-- exibe a versão do Lua
+print(_VERSION)
+
 -- Função para ler e parsear o arquivo de configuração
 function load_config()
     if file.exists("config.json") then
@@ -68,11 +71,10 @@ end
   Executa funcao sem lançar error. Printa o callstack no terminal.
 --]]
 function chamar(fn, onError)
-  local ok, res = xpcall(fn, debug.traceback)
-  if not ok then
+  local ok, res = xpcall(fn, function(e) print("erro: ", e, debug.traceback()) return nil end)
+  if ok then
      return res
   else
-     print(res)
      if onError then
         onError()
      end

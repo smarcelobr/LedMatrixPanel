@@ -17,6 +17,9 @@ cp config.json ../../out/
 echo Copiando web pages
 cd ../web || exit
 cp *.html ../../out
+cp *.svg ../../out
+cp *.js ../../out
+cp *.css ../../out
 
 echo Imagem LFS...
 cd ../lfs/ || exit
@@ -24,4 +27,4 @@ cd ../lfs/ || exit
 
 echo comprimindo web pages
 cd ../../out || exit
-gzip --best *.html
+gzip --best *.html *.svg *.js *.css

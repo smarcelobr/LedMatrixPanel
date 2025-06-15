@@ -12,7 +12,7 @@ o código LUA para binário para ser gravado no LFS.
 Acesse https://nodemcu-build.com/
 
 - Branch: release
-- Módulos: bit,color_utils,file,encoder,gpio,net,node,pcm,píxbuf,rtctime,sjson,sntp,tmr,uart,websocket,wifi,ws2812
+- Módulos: bit,color_utils,file,encoder,gpio,net,node,pcm,píxbuf,rtctime,sjson,sntp,tmr,uart,wifi,ws2812
 - LFS size: 64Kb  (0x10000)
 - SPIFFS base: 0
 - SPIFFS size: 128Kb  (0x20000)
@@ -38,7 +38,6 @@ sjson - usado para ler config.json
 sntp - não usado mas deverá ser para sync da hora com internet (jun/2025)
 tmr - muito usado
 uart - usado para comunicação serial com PC (terminal)
-websocket - permite uso de websocket (ainda não usado neste projeto - jun/2025)
 wifi - para conectar no Wifi e obter IP.
 ws2812 - utilizado para controlar a fita de LEDs endereçável;
 

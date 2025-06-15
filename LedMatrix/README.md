@@ -1,5 +1,12 @@
 # Led Matrix
 
+## Documentação online
+
+- [nodemcu](https://nodemcu.readthedocs.io)
+- [NodeMCU-Tool](https://github.com/andidittrich/NodeMCU-Tool)
+- [Lua 5.1](https://www.lua.org/manual/5.1/manual.html)
+- [Esptool](https://github.com/espressif/esptool)
+
 ## Guia rápido
 
   Se já realizou o setup (instalação do Ubuntu e do usbpid), segue os comandos rotineiros:
@@ -74,8 +81,7 @@ $ git clone https://github.com/smarcelobr/LedMatrixPanel
 - Código fonte (release) do firmware nodemcu para ESP8266:
       https://github.com/nodemcu/nodemcu-firmware/tree/release
 
-- Documentação do nodemcu: 
-      https://nodemcu.readthedocs.io
+
 
 ### Building a firmware
 

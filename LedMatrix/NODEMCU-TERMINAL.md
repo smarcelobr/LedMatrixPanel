@@ -1,5 +1,12 @@
 # Terminal do NODEMCU
 
+### Para consultar a versão do Lua no nodemcu:
+
+Abra o terminal do nodemcu e:
+
+    > print(_VERSION)
+    Lua 5.1
+
 ### Remove o arquivo ok.flag:
 
     if file.exists("ok.flag") then if file.exists("not_ok.flag") then file.remove("not_ok.flag") end file.rename("ok.flag","not_ok.flag") end

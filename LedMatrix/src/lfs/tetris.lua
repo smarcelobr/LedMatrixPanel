@@ -440,7 +440,7 @@ do
             if (dt > step) then
                 dt = dt - step
                 node.task.post(node.task.MEDIUM_PRIORITY, function()
-                    chamar(drop())
+                    chamar(drop)
                 end)
             end
         end
@@ -453,17 +453,15 @@ do
     function frame(loopTimer)
         -- tmr.now() retorna um contador em microsegundos (reset após 31 bits).
         now = (tmr.now() / 1000)
-        chamar(update(now - last), function()
-            loopTimer:stop()
-        end)
+        chamar(function() update(now - last) end,
+               function() loopTimer:stop() end)
 
         if invalidate then
             invalidate = false
             node.task.post(node.task.MEDIUM_PRIORITY,
                     function()
-                        chamar(draw(), function()
-                            loopTimer:stop()
-                        end)
+                        chamar(draw,
+                        function() loopTimer:stop() end)
                     end)
         end
         last = now
@@ -516,7 +514,7 @@ do
     end
 end
 
-tetris.start()
+--tetris.start()
 
 -- shorthands
 function l()
