@@ -72,6 +72,9 @@ do
     res.send_header = send_header
     res.send = send
     res.finish = finish
+    -- funcoes abaixo para controle direto no stream:
+    res.csend = csend
+    res.cfini = cfini
     return res
   end
 
@@ -100,7 +103,6 @@ do
           ondisconnect(conn)
         end)
       end
-
 
       -- header parser
       local cnt_len = 0

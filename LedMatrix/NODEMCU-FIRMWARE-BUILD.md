@@ -12,7 +12,7 @@ o código LUA para binário para ser gravado no LFS.
 Acesse https://nodemcu-build.com/
 
 - Branch: release
-- Módulos: bit,color_utils,file,encoder,gpio,net,node,pcm,píxbuf,rtctime,sjson,sntp,tmr,uart,wifi,ws2812
+- Módulos: bit,crypto,file,encoder,gpio,net,node,pcm,píxbuf,rtctime,sjson,sntp,tmr,uart,wifi,ws2812
 - LFS size: 64Kb  (0x10000)
 - SPIFFS base: 0
 - SPIFFS size: 128Kb  (0x20000)
@@ -25,9 +25,10 @@ Não precisa selecionar as opções variadas:
 ## Módulos utilizados
 
 bit - operações lógicas de bit a bit com AND, OR utilizado pelo tetris
-color_utils - não sei se é utilizado...
+crypto - para handshake do websocket que usa SHA-1 
 file - utilizado para ler o arquivo config.json
-encoder - utilizado pelo nodemcu-tool para acelerar o download e upload;
+encoder - base64 é utilizado pelo nodemcu-tool para acelerar o download e upload e o 
+      handshake do websocket também usa-o.
 gpio - padrão... acho que o ws2812 usa mas talvez não.
 net - utilizado pelo httpserver
 node - padrao para reset, carregar LFS, etc.

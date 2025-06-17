@@ -63,7 +63,7 @@ function iniciarWebSocket() {
 
 function enviarAcao(acao) {
     if (ws && ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({ acao }));
+        ws.send(acao);
     }
 }
 

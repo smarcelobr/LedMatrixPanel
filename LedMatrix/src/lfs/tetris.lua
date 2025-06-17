@@ -472,10 +472,10 @@ do
         print("deu ruim!")
     end
 
-    -- expõe as KEYs para o tetris_server.
---    tetris.KEY = KEY
---    require("tetris_server")
+    -- expõe as KEYs para o tetris_httpserver.
+    tetris.KEY = KEY
     require("tetris_httpserver")
+--    require("tetris_server")
 
     function tetris.printStage()
         local linha, block
