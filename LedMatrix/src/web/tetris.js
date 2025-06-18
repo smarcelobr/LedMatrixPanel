@@ -72,37 +72,16 @@ document.addEventListener('DOMContentLoaded', () => {
     iniciarWebSocket();
 
     // Configurar listeners para os botões
-    const botoes = document.querySelectorAll('.directional-pad .round-button');
+    const botoes = document.querySelectorAll('.controls button');
     botoes.forEach(botao => {
         botao.addEventListener('click', (e) => {
-            const direcao = e.currentTarget.querySelector('path').getAttribute('d');
-            
-            // Identificar a ação baseada no path do SVG
-            let acao;
-            switch (direcao) {
-                case 'M7 14l5-5 5 5z':
-                    acao = 'up';
-                    break;
-                case 'M7 10l5 5 5-5z':
-                    acao = 'down';
-                    break;
-                case 'M15 19l-5-5 5-5z':
-                    acao = 'left';
-                    break;
-                case 'M9 19l5-5-5-5z':
-                    acao = 'right';
-                    break;
-            }
+            const acao = e.currentTarget.id;
 
-            if (acao) {
+            // Validar se a ação é válida
+            if (['up', 'down', 'left', 'right', 'start'].includes(acao)) {
                 enviarAcao(acao);
             }
         });
     });
 
-    // Configurar listener para o botão de rotação
-    const botaoRotacao = document.querySelector('.float-end .round-button');
-    botaoRotacao.addEventListener('click', () => {
-        enviarAcao('rotate');
-    });
 });

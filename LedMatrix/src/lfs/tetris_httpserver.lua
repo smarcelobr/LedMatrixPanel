@@ -18,13 +18,13 @@ local contentTypeMap = {
       html = "text/html",
       css = "text/css",
       js = "application/javascript",
+      svg = "image/svg+xml"
 --      png = "image/png",
 --      jpg = "image/jpeg",
 --      jpeg = "image/jpeg",
 --      gif = "image/gif",
 --      ico = "image/x-icon",
-      json = "application/json",
-      svg = "image/svg+xml"
+--      json = "application/json",
 }
 
 require("httpserver").createServer(80, function(req, res)
@@ -38,18 +38,13 @@ require("httpserver").createServer(80, function(req, res)
   end
   req.fileext = string.match(req.filename, "%.([^%.]+)$") or nil
   req.accept_enc_gzip = false
-  req.accept_json = false
   req.websocket = false
 
   -- setup handler of headers, if any
   req.onheader = function(self, name, value) -- luacheck: ignore
     print("+H", name, value)
 
-    if name == "accept" then
-      if string.find(value, "application/json") then
-        req.accept_json = true
-      end
-    elseif name == "accept-encoding" then
+    if name == "accept-encoding" then
         if string.find(value, "gzip") then
             req.accept_enc_gzip = true
         end
@@ -69,25 +64,9 @@ require("httpserver").createServer(80, function(req, res)
           elseif req.url == '/game' and req.websocket then
               print("ws")
               return req.game_websocket_handshake_response
-          elseif req.accept_json then
-              return req.helloword
           end
       end
       return req.not_found
-  end
-
-  -- setup handler do helloword
-
-  req.helloword = function(self, chunk) -- luacheck: ignore
-    print("+B", chunk and #chunk, node.heap())
-    if not chunk then
-      -- reply
-      res:send(nil, 200)
-      res:send_header("Connection", "close")
-      res:send_header("Content-Type", "application/json")
-      res:send("{\"msg\":\"Hello, world!\"}\n")
-      res:finish()
-    end
   end
 
   req.get_gzip_file = function(self, chunk)
@@ -217,7 +196,8 @@ require("httpserver").createServer(80, function(req, res)
           up = tetris.KEY.UP,
           down = tetris.KEY.DOWN,
           left = tetris.KEY.LEFT,
-          right = tetris.KEY.RIGHT
+          right = tetris.KEY.RIGHT,
+          start = tetris.KEY.SPACE
         }
 
         if actions[message] then
