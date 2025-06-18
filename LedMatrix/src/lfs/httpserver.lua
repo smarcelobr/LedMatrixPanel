@@ -90,6 +90,9 @@ do
       local method, url
 
       local ondisconnect = function(connection)
+        if req and req.ondisconnect then
+            req:ondisconnect()
+        end
         connection:on("receive", nil)
         connection:on("disconnection", nil)
         connection:on("sent", nil)

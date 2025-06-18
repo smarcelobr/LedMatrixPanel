@@ -4,7 +4,7 @@ const pecas = ['t', 'i', 'j', 'l', 's', 'z', 'o'];
 
 async function carregarSVG(tipo) {
     try {
-        const resposta = await fetch(`/pecas/peca-${tipo}.svg`);
+        const resposta = await fetch(`/peca-${tipo}.svg`);
         if (!resposta.ok) {
             throw new Error(`Erro ao carregar SVG: ${resposta.status}`);
         }
@@ -25,6 +25,11 @@ async function mostrarProximaPeca(tipo) {
     }
 }
 
+function apagarProximaPeca() {
+    const nextPieceElement = document.getElementById('next-piece-img');
+    nextPieceElement.innerHTML = '';
+}
+
 function atualizarScore(score) {
     document.querySelector('.score').textContent = `Score: ${score}`;
 }
@@ -42,8 +47,10 @@ function iniciarWebSocket() {
     ws.onmessage = (event) => {
         // Processar mensagens recebidas do servidor
         const data = JSON.parse(event.data);
-        if (data.proximaPeca) {
-            mostrarProximaPeca(data.proximaPeca);
+        if (data.next_piece) {
+            mostrarProximaPeca(data.next_piece);
+        } else {
+            apagarProximaPeca();
         }
         if (data.score !== undefined) {
             atualizarScore(data.score);

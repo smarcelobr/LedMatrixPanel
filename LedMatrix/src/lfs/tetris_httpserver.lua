@@ -181,6 +181,11 @@ require("httpserver").createServer(80, function(req, res)
                       end)
           -- as próximas chamadas deve ser para decodificar as mensagens
           req.ondata = req.game_decode_message
+          tetris.setStateConsumer(req.send_game_state)
+          req.ondisconnect = function (self)
+                 tetris.setStateConsumer(nil)
+                 print("ws:discon")
+              end
       end
   end
 
@@ -227,7 +232,7 @@ require("httpserver").createServer(80, function(req, res)
   
   req.game_pong_message_handler = function(message)
       -- quando receber um pong (0xA) do client apenas ignora.
-      print("pong!")
+      print("ws:pong!")
   end
 
   req.game_decode_message = function(self, chunk)
@@ -301,6 +306,35 @@ require("httpserver").createServer(80, function(req, res)
         end
     end)
 
+  end
+
+  req.send_game_state = function(state)
+        local message = '{'
+        local first = true
+        for chave, valor in pairs(state) do
+          if not first then
+              message = message .. ','
+          else
+              first = false
+          end
+          message = message .. "\"" .. chave .."\":"
+          if type(valor) == "boolean" then
+             message = message .. (valor and "true" or "false")
+          elseif type(valor) == "number" then
+             message = message .. tostring(valor)
+          elseif type(valor) == "string" then
+             message = message .. "\"" .. valor .. "\""
+          else
+             message = message .. "null"
+          end
+        end
+        message = message .. "}"
+
+        print(message)
+
+        res.csend(string.char(0x81))  -- FIN=1, opcode=0x1 (text)
+        res.csend(string.char(#message))  -- payload length
+        res.csend(message) -- echo back original payload
   end
 
 end)

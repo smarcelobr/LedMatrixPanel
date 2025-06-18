@@ -84,6 +84,29 @@ do
 
     local invalidate = false -- indica se o desenho da tela precisa ser feito
 
+    local state_changed = false -- indica que o estado do jogo mudou e a notificação está pendente.
+    local state_consumer = nil -- funcao a ser executada para notificar a mudança do estado do jogo.
+
+    --[[
+      Função a ser executada sempre que o estado do jogo for alterado.
+          Na notificação esta funcao receberá um parâmetro, um mapa com os seguintes valores:
+          {playing (true/false), rows (number), score (number), next_piece (text)}
+    --]]
+    function tetris.setStateConsumer(stateConsumerFn)
+        state_consumer = stateConsumerFn
+        -- força o envio da primeira notificação
+        state_changed = (stateConsumerFn ~= nil)
+    end
+
+    function notifyStateChanged()
+        if (state_consumer) then
+            local state = {playing = playing, rows = rows, score = score,
+                               next_piece = next and next.type and next.type.name or nil}
+            state_consumer(state)
+        end
+        state_changed = false
+    end
+
     -- Mapa de teclas e ações
     local actionMap = {
         [KEY.LEFT] = function()
@@ -182,7 +205,7 @@ do
 
     function setScore(n)
         score = n
-        --invalidateScore()
+        state_changed = true
     end
 
     function addScore(n)
@@ -193,7 +216,7 @@ do
         rows = n
 
         step = math.max(speed.min, speed.start - (speed.decrement * rows))
-        --invalidateRows()
+        state_changed = true
     end
 
     function addRows(n)
@@ -221,7 +244,7 @@ do
 
     function setNextPiece(piece)
         next = piece or randomPiece();
-        --invalidateNext()
+        state_changed = true
     end
 
     function occupiedBlock(x, y)
@@ -374,6 +397,7 @@ do
 
     function lose()
         print('perdeu!')
+        state_changed = true
         tetris.stop()
     end
 
@@ -408,11 +432,13 @@ do
         initStage()
         last = (tmr.now() / 1000) -- em milliseconds
         playing = true
+        state_changed = true
     end
 
     function tetris.stop()
         current = nil
         playing = false
+        state_changed = true
     end
 
     -- callback do fifo:dequeue
@@ -463,6 +489,14 @@ do
                         chamar(draw,
                         function() loopTimer:stop() end)
                     end)
+        end
+
+        if state_changed then
+            node.task.post(node.task.MEDIUM_PRIORITY,
+                                function()
+                                    chamar(notifyStateChanged,
+                                    function() loopTimer:stop() end)
+                                end)
         end
         last = now
     end
